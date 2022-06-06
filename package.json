@@ -1,9 +1,9 @@
 {
-  "name": "optimize-image",
+  "name": "img-min",
   "version": "0.1.0",
   "main": "ImgMin.mjs",
   "scripts": {
-    "image": "rimraf dist && node ./image.mjs"
+    "image": "rimraf dist && node ./example.mjs"
   },
   "author": "",
   "license": "MIT",
