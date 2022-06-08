@@ -22,6 +22,7 @@ class ImgMin {
           webp: { quality: 80, smartSubsample: true },
           svg: ['--config', path.resolve(process.cwd(), 'svgo.config.js')],
         },
+        custom: {},
       },
       data
     );
@@ -103,16 +104,30 @@ class ImgMin {
   }
 
   async _optimizeJpg(from, to) {
-    return await sharp(from).jpeg(this.data.option.jpg).toFile(to);
+    const option = {
+      ...this.data.option.jpg,
+      ...(this.data?.custom[from]?.jpg || {}),
+    };
+    return await sharp(from).jpeg(option).toFile(to);
   }
 
   async _optimizePng(from, to) {
-    return await sharp(from).png(this.data.option.png).toFile(to);
+    const option = {
+      ...this.data.option.png,
+      ...(this.data?.custom[from]?.png || {}),
+    };
+    return await sharp(from).png(option).toFile(to);
   }
 
   async _optimizeWebp(from, to) {
+    const extname = path.extname(from);
     const out = this._replaceExt(to, '.webp');
-    return await sharp(from).webp(this.data.option.webp).toFile(out);
+    const option = {
+      ...this.data.option.webp,
+      ...{ lossless: ['.png'].includes(extname) },
+      ...(this.data?.custom[from]?.webp || {}),
+    };
+    return await sharp(from).webp(option).toFile(out);
   }
 
   async _optimizeSvg(from, to) {

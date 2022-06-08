@@ -8,6 +8,14 @@ new ImgMin({
   dest: './dist',
   option: {
     base: './src',
-    cacheDir: './.cache/images',
+    cacheDir: '../.cache/images',
+  },
+
+  /**
+   * custom sharp webp config
+   * https://sharp.pixelplumbing.com/api-output#webp
+   */
+  custom: {
+    './src/400x400.png': { webp: { lossless: false, nearLossless: true } },
   },
 }).run();
