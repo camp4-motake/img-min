@@ -54,13 +54,14 @@ class ImgMin {
       return await fs.promises
         .mkdir(path.dirname(cacheTo), { recursive: true })
         .then(() => {
-          console.log('COMPRESS:', copyTo);
           if (['.svg'].includes(extname)) {
+            console.log('COMPRESS:', copyTo);
             this._optimizeSvg(from, cacheTo).then(() =>
               this._copyFiles(cacheTo, copyTo)
             );
           }
           if (!this.data.option.isModernFormatOnly) {
+            console.log('COMPRESS:', copyTo);
             if (['.jpeg', '.jpg'].includes(extname)) {
               this._optimizeJpg(from, cacheTo).then(() =>
                 this._copyFiles(cacheTo, copyTo)
