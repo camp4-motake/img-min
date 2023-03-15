@@ -8,7 +8,7 @@ new ImgMin({
   dest: './dist',
   option: {
     base: './src',
-    cacheDir: '../.cache/images',
+    cacheDir: './.cache/images',
   },
 
   /**

@@ -17,11 +17,15 @@ class ImgMin {
           base: undefined,
           cacheDir: path.resolve(process.cwd(), './node_modules/.cache/images'),
           isWebp: true,
+          isAvif: true,
+          isModernFormatOnly: true,
           webpExt: ['.jpeg', '.jpg', '.png', '.gif'],
+          avifExt: ['.jpeg', '.jpg', '.png', '.gif'],
           png: { quality: 80 },
           jpg: { quality: 80 },
           webp: { quality: 80, smartSubsample: true },
-          svg: ['--config', path.resolve(__dirname, 'svgo.config.js')],
+          avif: { quality: 80 },
+          svg: ['--config', path.resolve(__dirname, 'svgo.config.cjs')],
         },
         custom: {},
       },
@@ -40,6 +44,7 @@ class ImgMin {
     const cacheTo = path.join(this.data.option.cacheDir, from);
     const copyTo = this._createDestinationFilePath(file);
     const isWebp = this.data.option?.isWebp || this.default.option?.isWebp;
+    const isAvif = this.data.option?.isAvif || this.default.option?.isAvif;
 
     if (!['.png', '.jpeg', '.jpg', '.svg', '.gif'].includes(extname)) {
       return this._copyFiles(from, copyTo);
@@ -55,37 +60,54 @@ class ImgMin {
               this._copyFiles(cacheTo, copyTo)
             );
           }
-          if (['.jpeg', '.jpg'].includes(extname)) {
-            this._optimizeJpg(from, cacheTo).then(() =>
-              this._copyFiles(cacheTo, copyTo)
-            );
-          }
-          if (['.png'].includes(extname)) {
-            this._optimizePng(from, cacheTo).then(() =>
-              this._copyFiles(cacheTo, copyTo)
-            );
+          if (!this.data.option.isModernFormatOnly) {
+            if (['.jpeg', '.jpg'].includes(extname)) {
+              this._optimizeJpg(from, cacheTo).then(() =>
+                this._copyFiles(cacheTo, copyTo)
+              );
+            }
+            if (['.png'].includes(extname)) {
+              this._optimizePng(from, cacheTo).then(() =>
+                this._copyFiles(cacheTo, copyTo)
+              );
+            }
           }
           // webp
           if (isWebp && this.data.option?.webpExt?.includes(extname)) {
-            console.log('WEBP:', this._replaceExt(copyTo));
+            const webpExit = this._replaceExt(copyTo, '.webp');
+            console.log('WEBP:', webpExit);
             this._optimizeWebp(from, cacheTo).then(() =>
-              this._copyFiles(
-                this._replaceExt(cacheTo),
-                this._replaceExt(copyTo)
-              )
+              this._copyFiles(this._replaceExt(cacheTo), webpExit)
+            );
+          }
+          // avif
+          if (isAvif && this.data.option?.avifExt?.includes(extname)) {
+            const exit = this._replaceExt(copyTo, '.avif');
+            console.log('AVIF:', exit);
+            this._optimizeAvif(from, cacheTo).then(() =>
+              this._copyFiles(this._replaceExt(cacheTo), exit)
             );
           }
         });
     }
 
     // cache copy
-    // console.log('COPY:', copyTo);
-    this._copyFiles(cacheTo, copyTo);
-
+    if (['.svg'].includes(extname) || !this.data.option.isModernFormatOnly) {
+      this._copyFiles(cacheTo, copyTo);
+    }
     // cache webp copy
     if (isWebp && this.data.option?.webpExt?.includes(extname)) {
-      // console.log('COPY:', this._replaceExt(copyTo));
-      this._copyFiles(this._replaceExt(cacheTo), this._replaceExt(copyTo));
+      this._copyFiles(
+        this._replaceExt(cacheTo),
+        this._replaceExt(copyTo, '.webp')
+      );
+    }
+    if (isAvif && this.data.option?.avifExt?.includes(extname)) {
+      console.log(cacheTo);
+      this._copyFiles(
+        this._replaceExt(cacheTo),
+        this._replaceExt(copyTo, '.avif')
+      );
     }
   }
 
@@ -129,6 +151,17 @@ class ImgMin {
       ...(this.data?.custom[from]?.webp || {}),
     };
     return await sharp(from).webp(option).toFile(out);
+  }
+
+  async _optimizeAvif(from, to) {
+    const extname = path.extname(from);
+    const out = this._replaceExt(to, '.avif');
+    const option = {
+      ...this.data.option.avif,
+      ...{ lossless: ['.png'].includes(extname) },
+      ...(this.data?.custom[from]?.avif || {}),
+    };
+    return await sharp(from).avif(option).toFile(out);
   }
 
   async _optimizeSvg(from, to) {
