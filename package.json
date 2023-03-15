@@ -1,7 +1,8 @@
 {
   "name": "img-min",
   "version": "0.1.0",
-  "main": "ImgMin.mjs",
+  "main": "index.mjs",
+  "type": "module",
   "scripts": {
     "image": "rimraf dist && node ./example.mjs"
   },
