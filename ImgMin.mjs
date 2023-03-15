@@ -49,18 +49,24 @@ class ImgMin {
     if (!['.png', '.jpeg', '.jpg', '.svg', '.gif'].includes(extname)) {
       return this._copyFiles(from, copyTo);
     }
-
-    if (!this._isCacheExits(from, cacheTo)) {
-      return await fs.promises
-        .mkdir(path.dirname(cacheTo), { recursive: true })
-        .then(() => {
-          if (['.svg'].includes(extname)) {
-            console.log('COMPRESS:', copyTo);
-            this._optimizeSvg(from, cacheTo).then(() =>
-              this._copyFiles(cacheTo, copyTo)
-            );
+    return await fs.promises
+      .mkdir(path.dirname(cacheTo), { recursive: true })
+      .then(() => {
+        if (['.svg'].includes(extname)) {
+          if (this._isCacheExits(from, cacheTo)) {
+            this._copyFiles(cacheTo, copyTo);
+            return;
           }
-          if (!this.data.option.isModernFormatOnly) {
+          console.log('COMPRESS:', copyTo);
+          this._optimizeSvg(from, cacheTo).then(() =>
+            this._copyFiles(cacheTo, copyTo)
+          );
+          return;
+        }
+        if (!this.data.option.isModernFormatOnly) {
+          if (this._isCacheExits(from, cacheTo)) {
+            this._copyFiles(cacheTo, copyTo);
+          } else {
             console.log('COMPRESS:', copyTo);
             if (['.jpeg', '.jpg'].includes(extname)) {
               this._optimizeJpg(from, cacheTo).then(() =>
@@ -73,26 +79,39 @@ class ImgMin {
               );
             }
           }
-          // webp
-          if (isWebp && this.data.option?.webpExt?.includes(extname)) {
-            const webpExit = this._replaceExt(copyTo, '.webp');
+        }
+        // webp
+        if (isWebp && this.data.option?.webpExt?.includes(extname)) {
+          const ext = '.webp';
+          const webpExit = this._replaceExt(copyTo, ext);
+          const webpCache = this._replaceExt(cacheTo, ext);
+          if (this._isCacheExits(from, webpCache)) {
+            this._copyFiles(webpCache, webpExit);
+          } else {
             console.log('WEBP:', webpExit);
             this._optimizeWebp(from, cacheTo).then(() =>
-              this._copyFiles(this._replaceExt(cacheTo), webpExit)
+              this._copyFiles(webpCache, webpExit)
             );
           }
-          // avif
-          if (isAvif && this.data.option?.avifExt?.includes(extname)) {
-            const exit = this._replaceExt(copyTo, '.avif');
-            console.log('AVIF:', exit);
+        }
+        // avif
+        if (isAvif && this.data.option?.avifExt?.includes(extname)) {
+          const ext = '.avif';
+          const avifExit = this._replaceExt(copyTo, ext);
+          const avifCache = this._replaceExt(cacheTo, ext);
+          if (this._isCacheExits(from, avifCache)) {
+            this._copyFiles(avifCache, avifExit);
+          } else {
+            console.log('AVIF:', avifExit);
             this._optimizeAvif(from, cacheTo).then(() =>
-              this._copyFiles(this._replaceExt(cacheTo), exit)
+              this._copyFiles(avifCache, avifExit)
             );
           }
-        });
-    }
+        }
+      });
 
     // cache copy
+    /*
     if (['.svg'].includes(extname) || !this.data.option.isModernFormatOnly) {
       this._copyFiles(cacheTo, copyTo);
     }
@@ -110,6 +129,7 @@ class ImgMin {
         this._replaceExt(copyTo, '.avif')
       );
     }
+    */
   }
 
   _copyFiles(from, to) {
