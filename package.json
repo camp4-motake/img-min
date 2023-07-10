@@ -9,11 +9,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "globby": "^13.1.1",
-    "sharp": "^0.30.6",
-    "svgo": "^2.8.0"
+    "globby": "^13.2.2",
+    "sharp": "^0.32.1",
+    "svgo": "^3.0.2"
   },
   "devDependencies": {
-    "rimraf": "^3.0.2"
+    "rimraf": "^5.0.1"
   }
 }

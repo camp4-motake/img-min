@@ -1,4 +1,4 @@
-import ImgMin from './ImgMin.mjs';
+import ImgMin from './lib/ImgMin.mjs';
 
 /**
  * compress image & webp generate
